@@ -8,10 +8,15 @@ const InsulinCalculator = () => {
   const [carbs, setCarbs] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  
+  // Noi state-uri pentru valorile personalizate
+  const [useCustomValues, setUseCustomValues] = useState(false);
+  const [customISF, setCustomISF] = useState('72');
+  const [customICR, setCustomICR] = useState('20');
 
   // Valori pre-calculate
-  const ISF = 72; // Insulin Sensitivity Factor (mg/dL per unit)
-  const ICR = 20; // Insulin to Carb Ratio (grams per unit)
+  const DEFAULT_ISF = 72; // Insulin Sensitivity Factor (mg/dL per unit)
+  const DEFAULT_ICR = 20; // Insulin to Carb Ratio (grams per unit)
 
   const calculateInsulinDose = () => {
     try {
@@ -22,8 +27,16 @@ const InsulinCalculator = () => {
         throw new Error('Vă rugăm introduceți valori numerice valide.');
       }
 
+      // Folosește valorile personalizate dacă checkbox-ul este bifat
+      const isf = useCustomValues ? parseFloat(customISF) : DEFAULT_ISF;
+      const icr = useCustomValues ? parseFloat(customICR) : DEFAULT_ICR;
+      
+      if (isNaN(isf) || isf <= 0 || (useCustomValues && (isNaN(icr) || icr <= 0))) {
+        throw new Error('Valorile personalizate pentru ISF și ICR trebuie să fie numere pozitive.');
+      }
+
       // Calcularea dozei de corecție
-      const correctionDose = Math.max(0, (currentGlycemia - targetGlycemiaValue) / ISF);
+      const correctionDose = Math.max(0, (currentGlycemia - targetGlycemiaValue) / isf);
       
       // Calcularea dozei pentru carbohidrați dacă este cazul
       let carbDose = 0;
@@ -32,7 +45,7 @@ const InsulinCalculator = () => {
         if (isNaN(carbsValue)) {
           throw new Error('Vă rugăm introduceți o cantitate validă de carbohidrați.');
         }
-        carbDose = carbsValue / ICR;
+        carbDose = carbsValue / icr;
       }
 
       const totalDose = parseFloat((correctionDose + carbDose).toFixed(2));
@@ -46,7 +59,7 @@ const InsulinCalculator = () => {
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-center mb-6">Calculator Doză Insulină</h1>
+      <h2 className="text-xl font-bold text-center mb-4">Calculator Doză Insulină</h2>
       
       <div className="space-y-4">
         <div>
@@ -77,14 +90,58 @@ const InsulinCalculator = () => {
           />
         </div>
 
+        {/* Secțiune pentru valori personalizate */}
+        <div className="border-t border-gray-200 pt-4 mt-4">
+          <div className="flex items-center mb-3">
+            <input
+              type="checkbox"
+              checked={useCustomValues}
+              onChange={(e) => setUseCustomValues(e.target.checked)}
+              id="useCustomValues"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="useCustomValues" className="ml-2 block text-sm text-gray-900 font-medium">
+              Folosește valori personalizate pentru ISF și ICR
+            </label>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                ISF (mg/dL per unitate)
+              </label>
+              <input
+                type="number"
+                value={useCustomValues ? customISF : DEFAULT_ISF}
+                onChange={(e) => setCustomISF(e.target.value)}
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm ${useCustomValues ? 'bg-white focus:border-blue-500 focus:ring-blue-500' : 'bg-gray-100'}`}
+                disabled={!useCustomValues}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                ICR (grame per unitate)
+              </label>
+              <input
+                type="number"
+                value={useCustomValues ? customICR : DEFAULT_ICR}
+                onChange={(e) => setCustomICR(e.target.value)}
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm ${useCustomValues ? 'bg-white focus:border-blue-500 focus:ring-blue-500' : 'bg-gray-100'}`}
+                disabled={!useCustomValues}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="flex items-center">
           <input
             type="checkbox"
             checked={isEating}
             onChange={(e) => setIsEating(e.target.checked)}
+            id="isEating"
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <label className="ml-2 block text-sm text-gray-900">
+          <label htmlFor="isEating" className="ml-2 block text-sm text-gray-900">
             Urmează să mănânc
           </label>
         </div>
@@ -125,8 +182,10 @@ const InsulinCalculator = () => {
         )}
 
         <div className="text-sm text-gray-500 mt-4">
-          <p>ISF (Insulin Sensitivity Factor): {ISF} mg/dL per unitate</p>
-          <p>ICR (Insulin to Carb Ratio): {ICR} grame per unitate</p>
+          <p className="italic mb-1">Valorile folosite pentru calcul:</p>
+          <p>ISF: {useCustomValues ? customISF : DEFAULT_ISF} mg/dL per unitate</p>
+          <p>ICR: {useCustomValues ? customICR : DEFAULT_ICR} grame per unitate</p>
+          <p className="mt-2 text-xs">Notă: Calculați valorile personalizate în tab-urile ISF și ICR</p>
         </div>
       </div>
     </div>
