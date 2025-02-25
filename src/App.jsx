@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import InsulinCalculator from './components/InsulinCalculator';
 import ISFCalculator from './components/ISFCalculator';
 import ICRCalculator from './components/ICRCalculator';
+import HistoryCalculator from './components/HistoryCalculator';
 
 function App() {
   const [activeTab, setActiveTab] = useState('calculator');
@@ -12,24 +13,30 @@ function App() {
       <h1 className="text-3xl font-bold text-center text-blue-700 mb-6">Management Diabet</h1>
       
       {/* Tab Navigation */}
-      <div className="max-w-md mx-auto mb-6 flex border-b border-gray-200">
+      <div className="max-w-md mx-auto mb-6 flex border-b border-gray-200 overflow-x-auto">
         <button 
-          className={`py-2 px-4 font-medium ${activeTab === 'calculator' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+          className={`py-2 px-3 font-medium whitespace-nowrap ${activeTab === 'calculator' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
           onClick={() => setActiveTab('calculator')}
         >
           Doză Insulină
         </button>
         <button 
-          className={`py-2 px-4 font-medium ${activeTab === 'isf' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+          className={`py-2 px-3 font-medium whitespace-nowrap ${activeTab === 'isf' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
           onClick={() => setActiveTab('isf')}
         >
           Calculator ISF
         </button>
         <button 
-          className={`py-2 px-4 font-medium ${activeTab === 'icr' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+          className={`py-2 px-3 font-medium whitespace-nowrap ${activeTab === 'icr' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
           onClick={() => setActiveTab('icr')}
         >
           Calculator ICR
+        </button>
+        <button 
+          className={`py-2 px-3 font-medium whitespace-nowrap ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+          onClick={() => setActiveTab('history')}
+        >
+          Istoric
         </button>
       </div>
       
@@ -38,6 +45,7 @@ function App() {
         {activeTab === 'calculator' && <InsulinCalculator />}
         {activeTab === 'isf' && <ISFCalculator />}
         {activeTab === 'icr' && <ICRCalculator />}
+        {activeTab === 'history' && <HistoryCalculator />}
       </div>
       
       <div className="max-w-md mx-auto mt-8 text-center text-sm text-gray-500">

@@ -1,5 +1,6 @@
 // src/components/InsulinCalculator.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import StorageService from '../services/StorageService';
 
 const InsulinCalculator = () => {
   const [glycemia, setGlycemia] = useState('');
@@ -8,6 +9,7 @@ const InsulinCalculator = () => {
   const [carbs, setCarbs] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
   
   // Noi state-uri pentru valorile personalizate
   const [useCustomValues, setUseCustomValues] = useState(false);
@@ -17,6 +19,35 @@ const InsulinCalculator = () => {
   // Valori pre-calculate
   const DEFAULT_ISF = 72; // Insulin Sensitivity Factor (mg/dL per unit)
   const DEFAULT_ICR = 20; // Insulin to Carb Ratio (grams per unit)
+
+  // Încarcă valorile personalizate la inițializare
+  useEffect(() => {
+    const savedValues = StorageService.loadCustomValues();
+    if (savedValues) {
+      setUseCustomValues(savedValues.useCustomValues);
+      setCustomISF(savedValues.isf);
+      setCustomICR(savedValues.icr);
+    }
+  }, []);
+
+  // Funcție pentru salvarea valorilor personalizate
+  const saveCustomValuesToStorage = () => {
+    const values = {
+      useCustomValues,
+      isf: customISF,
+      icr: customICR
+    };
+    
+    const success = StorageService.saveCustomValues(values);
+    
+    if (success) {
+      setSaveMessage('Valorile au fost salvate cu succes!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } else {
+      setSaveMessage('Eroare la salvarea valorilor.');
+      setTimeout(() => setSaveMessage(''), 3000);
+    }
+  };
 
   const calculateInsulinDose = () => {
     try {
@@ -49,6 +80,20 @@ const InsulinCalculator = () => {
       }
 
       const totalDose = parseFloat((correctionDose + carbDose).toFixed(2));
+      
+      // Salvează calculul în istoric
+      StorageService.addCalculationToHistory({
+        glycemia: currentGlycemia,
+        targetGlycemia: targetGlycemiaValue,
+        isf: isf,
+        icr: icr,
+        isEating: isEating,
+        carbs: isEating ? parseFloat(carbs) : null,
+        correctionDose: parseFloat(correctionDose.toFixed(2)),
+        carbDose: isEating ? parseFloat(carbDose.toFixed(2)) : 0,
+        totalDose: totalDose
+      });
+      
       setResult(totalDose);
       setError('');
     } catch (err) {
@@ -131,6 +176,21 @@ const InsulinCalculator = () => {
               />
             </div>
           </div>
+          
+          {useCustomValues && (
+            <button
+              onClick={saveCustomValuesToStorage}
+              className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Salvează valorile personalizate
+            </button>
+          )}
+          
+          {saveMessage && (
+            <div className="mt-2 text-sm text-green-600">
+              {saveMessage}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center">
